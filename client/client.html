@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Our simple HTTP server</title>
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+  <script type="text/babel">
+    const deckID = "";
+    let workingDeck = [];
+    const handleSaveDeck = (xhr) => {
+      switch(xhr.status){
+        case 201:{
+          console.log("Deck Updated")
+          break;
+        }
+        case 204:{
+          console.log("New Deck Created");
+          break;
+        }
+        case 400:{
+          console.log(xhr.response);
+          break;
+        }
+      }
+      console.log("Deck Saved");
+    }
+    //POST Request for saving a deck 
+    const saveDeck = (e, form) => {
+      console.log(workingDeck);
+      e.preventDefault();
+      //Get necessary information
+      const deckIDToSave = form.querySelector("#searchString").value;
+      let contentToSave = {
+        deck: JSON.stringify(workingDeck)
+      };
+      console.log(workingDeck);
+      console.log(contentToSave);
+      contentToSave = encodeURIComponent(JSON.stringify(contentToSave));
+      //Send request
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/saveDeck");
+
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+      xhr.onload = () => handleSaveDeck(xhr);
+
+      const formData = `id=${deckIDToSave}&deck=${contentToSave}`;
+      console.log(formData);
+      xhr.send(formData);
+
+      return false;
+    };
+    //Handles the response from getting the deck
+    const handleGetDeck = (xhr) => {
+      let objectToUse = JSON.parse(xhr.response);
+      let allObjects = objectToUse.deck.deck;
+      allObjects = decodeURIComponent(allObjects);
+      allObjects = JSON.parse(allObjects);
+      allObjects = JSON.parse(allObjects.deck);
+      console.log(allObjects);
+      workingDeck = [];
+      allObjects.forEach((card) => {
+        workingDeck.push(card);
+      });
+      console.log(workingDeck);
+      visualizeDeck();
+    };
+    //GET Request for Deck
+    const getDeck = (e, form) => {
+      e.preventDefault();
+      //Get the necessary information 
+      const url = `/getDeck?q=${form.querySelector("#searchString").value}`;
+      //Create request
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", url);
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.onload = () => handleGetDeck(xhr);
+      xhr.send();
+
+      return false;
+    }
+    //Visualizes the card
+    const createCardHTML = (JSONToUse) => {
+      console.log(JSONToUse);
+
+      let imageURL = JSONToUse.card.image_uris.normal
+      let cardName = JSONToUse.card.name;
+      let oracleText = JSONToUse.card.oracle_text;
+      console.log(imageURL);
+      console.log(cardName);
+      console.log(oracleText);
+      let div = document.createElement("div");
+      let image = document.createElement("img");
+      let name = document.createElement("h3");
+      let text = document.createElement("p");
+      let button = document.createElement("button");
+      image.src = imageURL;
+      name.innerHTML = cardName;
+      text.innerHTML = oracleText;
+      button.value = "Add This Card";
+      button.innerHTML = "Add this card";
+      button.onclick =  (e) => {
+        addCard(JSONToUse);
+      };
+      div.appendChild(image);
+      div.appendChild(name);
+      div.appendChild(text);
+      div.appendChild(button);
+      console.dir(div);
+      return div;
+    }
+    //Handles the card
+    const handleGetCard = (xhr) => {
+      document.querySelector("#content").innerHTML = "";
+      document.querySelector("#content").appendChild(createCardHTML(JSON.parse(xhr.response)));
+    }
+    //GET Request for Cards
+    const getCard = (e, form) => {
+      e.preventDefault();
+      //Get the necessary information 
+      const url = "/getCard?q=" + form.querySelector("#searchString").value;
+      //Create request
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", url);
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.onload = () => handleGetCard(xhr);
+      xhr.send();
+
+      return false;
+    };
+    //Method for adding card to editing deck
+    const addCard = (card) => {
+      //Add card and visualize
+      workingDeck.push(card);
+      visualizeDeck();
+    }
+    //Method for visualizing the current deck
+    const visualizeDeck = () => {
+      //Set headers
+      let toSet = "<h1>Current Deck: </h1>";
+      //Add all cards to visualization
+      workingDeck.forEach(card => {
+        toSet = toSet + "<p>"+card.card.name+"</p>";
+      });
+      document.querySelector("#deck").innerHTML = toSet;
+    }
+    //Sets up buttons and functions
+    const init = () => {
+      //Get Deck Button
+      const getDeckForm = document.querySelector('#getDeck');
+      const getDeckFunction = (e) => getDeck(e, getDeckForm);
+      getDeckForm.addEventListener('submit', getDeckFunction);
+      //Save Deck
+      const saveDeckForm = document.querySelector('#saveDeck');
+      const saveDeckFunction = (e) => saveDeck(e, saveDeckForm);
+      saveDeckForm.addEventListener('submit', saveDeckFunction);
+      //Search Card
+      const searchForm = document.querySelector('#searchForm');
+      const searchFunction = (e) => getCard(e, searchForm);
+      searchForm.addEventListener('submit', searchFunction);
+      visualizeDeck();
+    };
+    window.onload = init;
+  </script>
+</head>
+<body>
+  <section id="top">
+    <h1>MTG Deck Builder using Scryfall API</h1>
+    <a href="https://scryfall.com/docs/api">Scryfall API</a>
+    <form id="getDeck" action="/getDeck" method="get">
+      <label for="deckID">Deck ID:</label>
+      <input type="text" id="searchString" name="searchString">
+      <input type="submit" value="Get Deck" />
+    </form>
+   	<form id="saveDeck" action="/saveDeck" method="POST">
+      <label for="deckID">Deck ID:</label>
+      <input type="text" id="searchString" name="searchString">
+      <input type="submit" value="Save Deck" />
+    </form>
+    <form id="searchForm" action="/searchCard" method="get">
+      <label for="searchString">Search For:</label>
+      <input type="text" id="searchString" name="searchString">
+      <input type="submit" value="Search" />
+    </form>
+  </section>
+  <section id="content">
+  </section>
+  <section id="deck">
+  </section>
+</body>
+</html>
