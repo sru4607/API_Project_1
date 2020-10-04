@@ -2,7 +2,8 @@ const http = require('http');
 const url = require('url');
 const query = require('querystring');
 const htmlHandler = require('./htmlResponses.js');
-const responseHandler = require('./jsonXMLResponses');
+const deckHandler = require('./deckSavingResponses.js');
+const cardHandler = require('./cardSearchResponses.js');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 // The functions relating to the different url paths
@@ -10,14 +11,14 @@ const urlStruct = {
   GET: {
     '/': htmlHandler.getIndex,
     '/style.css': htmlHandler.getCSS,
-    '/getCard': responseHandler.getCard,
-    '/getDeck': responseHandler.getDeck,
-    notFound: responseHandler.notFound,
+    '/getCard': cardHandler.getCard,
+    '/getDeck': deckHandler.getDeck,
+    notFound: deckHandler.notFound,
   },
   HEAD: {
-    '/getCard': responseHandler.getCardMeta,
-    '/getDeck': responseHandler.getDeckMeta,
-    notFound: responseHandler.notFoundMeta,
+    '/getCard': cardHandler.getCardMeta,
+    '/getDeck': deckHandler.getDeckMeta,
+    notFound: deckHandler.notFoundMeta,
   },
 };
 // Handles all post requests
@@ -38,7 +39,7 @@ const handlePost = (request, response, parsedURL) => {
     request.on('end', () => {
       const bodyString = Buffer.concat(body).toString();
       const bodyParams = query.parse(bodyString);
-      responseHandler.saveDeck(request, response, bodyParams);
+      deckHandler.saveDeck(request, response, bodyParams);
     });
   }
 };

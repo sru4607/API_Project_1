@@ -8,34 +8,63 @@
   <script type="text/babel">
     const deckID = "";
     let workingDeck = [];
+    //Prints out response from the POST request
     const handleSaveDeck = (xhr) => {
       switch(xhr.status){
         case 201:{
-          console.log("Deck Updated")
+          //Get output 
+          const output = document.querySelector("#result");
+          //Remove all html
+          output.innerHTML = "";
+          //Create neccessary elements
+          const message = document.createElement("h2");
+          //set text of elements
+          message.innerText = "New Deck Created"
+          //append elements
+          output.appendChild(message);
           break;
         }
         case 204:{
-          console.log("New Deck Created");
+          //Get output 
+          const output = document.querySelector("#result");
+          //Remove all html
+          output.innerHTML = "";
+          //Create neccessary elements
+          const message = document.createElement("h2");
+          //set text of elements
+          message.innerText = "Deck Updated"
+          //append elements
+          output.appendChild(message);
           break;
         }
-        case 400:{
-          console.log(xhr.response);
+        default:{
+          //Get output 
+          const output = document.querySelector("#result");
+          //Remove all html
+          output.innerHTML = "";
+          //parse json from response
+          const toUse = JSON.parse(xhr.response);
+          //Create neccessary elements
+          const message = document.createElement("h2");
+          const id = document.createElement("p");
+          //set text of elements
+          message.innerText = toUse.message;
+          id.innerText = toUse.id;
+          //append elements
+          output.appendChild(message);
+          output.appendChild(id);
           break;
         }
-      }
-      console.log("Deck Saved");
+      }    
     }
     //POST Request for saving a deck 
     const saveDeck = (e, form) => {
-      console.log(workingDeck);
       e.preventDefault();
       //Get necessary information
       const deckIDToSave = form.querySelector("#searchString").value;
       let contentToSave = {
         deck: JSON.stringify(workingDeck)
       };
-      console.log(workingDeck);
-      console.log(contentToSave);
       contentToSave = encodeURIComponent(JSON.stringify(contentToSave));
       //Send request
       const xhr = new XMLHttpRequest();
@@ -47,25 +76,51 @@
       xhr.onload = () => handleSaveDeck(xhr);
 
       const formData = `id=${deckIDToSave}&deck=${contentToSave}`;
-      console.log(formData);
       xhr.send(formData);
 
       return false;
     };
     //Handles the response from getting the deck
     const handleGetDeck = (xhr) => {
-      let objectToUse = JSON.parse(xhr.response);
-      let allObjects = objectToUse.deck.deck;
-      allObjects = decodeURIComponent(allObjects);
-      allObjects = JSON.parse(allObjects);
-      allObjects = JSON.parse(allObjects.deck);
-      console.log(allObjects);
-      workingDeck = [];
-      allObjects.forEach((card) => {
-        workingDeck.push(card);
-      });
-      console.log(workingDeck);
-      visualizeDeck();
+      if(xhr.status == 200){
+        let objectToUse = JSON.parse(xhr.response);
+        let allObjects = objectToUse.deck.deck;
+        allObjects = decodeURIComponent(allObjects);
+        allObjects = JSON.parse(allObjects);
+        allObjects = JSON.parse(allObjects.deck);
+        workingDeck = [];
+        allObjects.forEach((card) => {
+          workingDeck.push(card);
+        });
+        visualizeDeck();
+        //Get output 
+        const output = document.querySelector("#result");
+        //Remove all html
+        output.innerHTML = "";
+        //Create neccessary elements
+        const message = document.createElement("h2");
+        //set text of elements
+        message.innerText = "Deck Loaded Successfully";
+        //append elements
+        output.appendChild(message);
+      }
+      else{
+        //Get output 
+        const output = document.querySelector("#result");
+        //Remove all html
+        output.innerHTML = "";
+        //parse json from response
+        const toUse = JSON.parse(xhr.response);
+        //Create neccessary elements
+        const message = document.createElement("h2");
+        const id = document.createElement("p");
+        //set text of elements
+        message.innerText = toUse.message;
+        id.innerText = toUse.id;
+        //append elements
+        output.appendChild(message);
+        output.appendChild(id);
+      }
     };
     //GET Request for Deck
     const getDeck = (e, form) => {
@@ -83,44 +138,76 @@
     }
     //Visualizes the card
     const createCardHTML = (JSONToUse) => {
-      console.log(JSONToUse);
-
-      let imageURL = JSONToUse.card.image_uris.normal
+      //Get name
       let cardName = JSONToUse.card.name;
-      let oracleText = JSONToUse.card.oracle_text;
-      console.log(imageURL);
-      console.log(cardName);
-      console.log(oracleText);
+      //Crrate elements that will be there 100% of the time
       let div = document.createElement("div");
-      let image = document.createElement("img");
       let name = document.createElement("h3");
-      let text = document.createElement("p");
       let button = document.createElement("button");
-      image.src = imageURL;
+      //Set name text
       name.innerHTML = cardName;
-      text.innerHTML = oracleText;
+      //Set button information
       button.value = "Add This Card";
       button.innerHTML = "Add this card";
       button.onclick =  (e) => {
         addCard(JSONToUse);
       };
-      div.appendChild(image);
+      //Image control
+      let imageURL = "";
+      //If normal card
+      if(JSONToUse.card.image_uris){
+        imageURL = JSONToUse.card.image_uris.border_crop;
+      //If double faced card
+      }else if(JSONToUse.card.card_faces){
+        imageURL = JSONToUse.card.card_faces[0].image_uris.border_crop;
+      }
+      //If image was found
+      if(imageURL != ""){
+        let image = document.createElement("img");
+        image.src = imageURL;
+        image.id = "cardImage";
+        div.appendChild(image);
+      }
+      //Append Name
       div.appendChild(name);
-      div.appendChild(text);
+      //Text control
+      let oracleText = "";
+      //if it a normal card
+      if(JSONToUse.card.oracle_text){
+        oracleText = JSONToUse.card.oracle_text;
+      //if double faced card
+      }else if(JSONToUse.card.card_faces){
+        oracleText = JSONToUse.card.card_faces[0].oracle_text;
+      }
+      //if text was found
+      if(oracleText != ""){
+        let text = document.createElement("p");
+        text.innerHTML = oracleText;
+        div.appendChild(text);
+      }
+      //append button
       div.appendChild(button);
-      console.dir(div);
       return div;
     }
     //Handles the card
     const handleGetCard = (xhr) => {
-      document.querySelector("#content").innerHTML = "";
-      document.querySelector("#content").appendChild(createCardHTML(JSON.parse(xhr.response)));
+      const resultElement = document.querySelector("#result");
+      resultElement.innerHTML = "";
+      if(xhr.status == 200){
+        resultElement.appendChild(createCardHTML(JSON.parse(xhr.response)));
+      }
+      else if(xhr.status == 404){
+        const output = document.createElement("p");
+        const toUse = JSON.parse(xhr.response);
+        output.innerText = "No card found";
+        resultElement.appendChild(output);
+      }
     }
     //GET Request for Cards
     const getCard = (e, form) => {
       e.preventDefault();
       //Get the necessary information 
-      const url = "/getCard?q=" + form.querySelector("#searchString").value;
+      const url = `/getCard?q="${form.querySelector("#searchString").value}"`;
       //Create request
       const xhr = new XMLHttpRequest();
       xhr.open("GET", url);
@@ -136,16 +223,33 @@
       workingDeck.push(card);
       visualizeDeck();
     }
+    //Function for removing a card at an index from the deck
+    const removeCard = (index) => {
+      workingDeck.splice(index,1);
+      visualizeDeck();
+    }
     //Method for visualizing the current deck
     const visualizeDeck = () => {
       //Set headers
-      let toSet = "<h1>Current Deck: </h1>";
+      const deck = document.querySelector("#deck");
+      deck.innerHTML = "";
+      const header = document.createElement("h1");
+      header.innerText="Current Deck";
+      deck.appendChild(header);
       //Add all cards to visualization
-      workingDeck.forEach(card => {
-        toSet = toSet + "<p>"+card.card.name+"</p>";
-      });
-      document.querySelector("#deck").innerHTML = toSet;
+      for(let i = 0; i<workingDeck.length; i++){
+        const cardButton = document.createElement("button");
+        cardButton.className="cardButton"
+        cardButton.innerText=workingDeck[i].card.name;
+        cardButton.setAttribute("indexPos", i);
+        const triggerRemove = (e) => {
+          removeCard(i)
+        };
+        cardButton.onclick = triggerRemove;
+        deck.appendChild(cardButton);
+      }
     }
+    
     //Sets up buttons and functions
     const init = () => {
       //Get Deck Button
@@ -160,34 +264,63 @@
       const searchForm = document.querySelector('#searchForm');
       const searchFunction = (e) => getCard(e, searchForm);
       searchForm.addEventListener('submit', searchFunction);
+      const event = new Event("submit");
+      getDeckForm.dispatchEvent(event);
+      //Load Initial
+
+      //Get the necessary information 
+      const url = '/getCard?q="Golos"';
+      //Create request
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", url);
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.onload = () => handleGetCard(xhr);
+      xhr.send();
+
+      return false;
       visualizeDeck();
     };
     window.onload = init;
   </script>
 </head>
+
 <body>
-  <section id="top">
+  <div id="top">
     <h1>MTG Deck Builder using Scryfall API</h1>
-    <a href="https://scryfall.com/docs/api">Scryfall API</a>
-    <form id="getDeck" action="/getDeck" method="get">
-      <label for="deckID">Deck ID:</label>
-      <input type="text" id="searchString" name="searchString">
-      <input type="submit" value="Get Deck" />
-    </form>
-   	<form id="saveDeck" action="/saveDeck" method="POST">
-      <label for="deckID">Deck ID:</label>
-      <input type="text" id="searchString" name="searchString">
-      <input type="submit" value="Save Deck" />
-    </form>
-    <form id="searchForm" action="/searchCard" method="get">
-      <label for="searchString">Search For:</label>
-      <input type="text" id="searchString" name="searchString">
-      <input type="submit" value="Search" />
-    </form>
-  </section>
-  <section id="content">
-  </section>
-  <section id="deck">
-  </section>
+  </div>
+  <div id="left">
+    <div id="forms">
+      <form id="getDeck" action="/getDeck" method="get">
+        <label for="deckID">Load:</label>
+        <input type="text" id="searchString" name="searchString" placeholder="ID to load" value="Default">
+        <input type="submit" value="Load" />
+      </form>
+      <form id="saveDeck" action="/saveDeck" method="POST">
+        <label for="deckID">Save:</label>
+        <input type="text" id="searchString" name="searchString" placeholder="ID to save">
+        <input type="submit" value="Save" />
+      </form>
+      <form id="searchForm" action="/searchCard" method="get">
+        <label for="searchString">Search:</label>
+        <input type="text" id="searchString" name="searchString" placeholder="Search String">
+        <input type="submit" value="Search" />
+      </form>
+    </div>
+    <div id="resultOutput">
+      <h1 id="resultHeader">
+        Results:
+      </h1>
+      <div id="result">
+
+      </div>
+    </div>
+  </div>
+  <div id="right">
+      <div id="output"></div>
+    <div id="deck">
+
+    </div>
+  </div>
+  <footer><a href="https://scryfall.com/docs/api" target="_blank">Scryfall API</a></footer>
 </body>
 </html>

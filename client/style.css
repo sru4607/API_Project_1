@@ -3,19 +3,167 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
+  overflow-y: hidden;
+  background-color: #1f1f1f;
+  color: whitesmoke;
+  font-family: sans-serif;
+}
+a{
+  color: whitesmoke;
+}
+a:visited{
+  color: 343a40;
 }
 
-#top {
+#top{
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  width: 100%;
   text-align: center;
-  margin: 0 auto;
 }
-
-#top h1 {
-  font-size: 2em;
+#left{
+  width: 70%;
+  top: 100px;
+  bottom: 25px;
+  left: 3%;
+  position: fixed;
+  background-color: gray;
+  color: black;
+  overflow-y: auto;
 }
-
-#content {
-  margin-top: 100px;
-  font-size: 2em;
+#right{
+  background-color: rgba(128,128,128,0.1);
+  width:20%;
+  overflow-y: auto;
+  top: 100px;
+  bottom: 25px;
+  right: 3%;
+  position: fixed;
+  color: whitesmoke; 
+  box-sizing: content-box;
+  padding: 5px;
+}
+footer{
+  height: 25px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: fixed;
   text-align: center;
+}
+#resultOutput{
+  margin: 15px;
+}
+#result{
+  text-align: center;
+}
+#cardImage{
+  width: 25%;
+}
+#deck{
+  text-align: center;
+}
+
+
+#forms{
+  text-align: center;
+  position: relative;
+  background-color: #3a3a3a;
+  box-sizing: border-box;
+  padding: 10px;
+  width: auto;
+}
+form{
+  color: whitesmoke;
+  margin-left: 8px;
+  margin-right: 8px;
+  display: inline-flex;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+[type|="text"]{
+  background-color: whitesmoke;
+  border: 0px;
+  display: flex;
+  height:30px;
+  width: 200px;
+  box-sizing: border-box;
+}
+[type|="submit"]{
+  background-color: gray;
+  color: whitesmoke;
+  border: 0px;
+  display: flex;
+  height:30px;
+  box-sizing: border-box;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+label{
+  display: flex;
+  border: 0px;
+  background-color: gray;
+  color: whitesmoke;
+  height:30px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  line-height: 20px;
+  padding: 5px;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+button{
+  background-color: #3a3a3a;
+  color: whitesmoke;
+  border: 0px;
+  height:30px;
+  box-sizing: border-box;
+  border-radius: 10px;
+}
+
+
+.listHeader{
+  text-align: center;
+  background-color: #343a40;
+  height: 50px;
+  line-height: 1.5em;
+}
+.cardButton{
+  text-align: center;
+  height: 25px;
+  margin: 2px;
+  list-style: none;
+  padding: 5px;
+  line-height: 1.5em;
+  background-color: #343a40;
+  font-weight: bold;
+  display: block;
+  width:100%;
+}
+ul{
+  padding-inline-start: 0px;
+}
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+  bottom: 0px;
+  top: 30px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
